@@ -1,0 +1,25 @@
+Vacuum Cleaner Agent:
+
+Problem Statement:
+
+Given an M x N grid(floor), create an agent that moves around the grid until the entire grid is clean.
+The agent starts at the first location i.e, (1,1) and moves across the grid in this case.
+The agent can move left, right, up and down. Move the agent anyway you see fit until the floor is clean
+
+Floor Representation:
+
+Floor is representated as follows:
+floor =
+[[0, 0, 0, 0],
+[0, 1, 1, 1],
+[1, 1, 1, 0],
+[0, 0, 1, 1]]
+
+'1' represents dirty and '0' represents clean
+
+Functions used:
+
+clean(floor) - To clean the cell i.e, replace '1' with '0'. Steps involved are:
+    Traverse every column in each row
+    if the row is even, traverse the columns in forward direction
+    if the row is odd, traverse the columns in reverse direction
