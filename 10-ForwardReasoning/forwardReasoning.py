@@ -1,20 +1,30 @@
 import re
 
-def isVariable(x):
-    return len(x) == 1 and x.islower() and x.isalpha()
-
-def getAttributes(string):
-    expr = '\([^)]+\)' 
-    matches = re.findall(expr, string)
-    return matches
-    
-
-def getPredicates(string):
-    expr = '([a-z~]+)\([^&|]+\)'
-    return re.findall(expr, string)
+class Implication:
+    def __init__(self, expression):
+        self.expression = expression
+        l = expression.split('=>')
+        self.lhs = [Fact(f) for f in l[0].split('&')]
+        self.rhs = Fact(l[1])
+        
+    def evaluate(self, facts):
+        constants = {}
+        new_lhs = []
+        for fact in facts:
+            for val in self.lhs:
+                if val.predicate == fact.predicate:
+                    for i, v in enumerate(val.getVariables()):
+                        if v:
+                            constants[v] = fact.getConstants()[i]
+                    new_lhs.append(fact)
+        predicate, attributes = getPredicates(self.rhs.expression)[0], str(getAttributes(self.rhs.expression)[0])
+        for key in constants:
+            if constants[key]:
+                attributes = attributes.replace(key, constants[key])
+        expr = f'{predicate}{attributes}'
+        return Fact(expr) if len(new_lhs) and all([f.getResult() for f in new_lhs]) else None
 
 class Fact:
-    
     def __init__(self, expression):
         self.expression = expression
         predicate, params = self.splitExpression(expression)
@@ -41,33 +51,7 @@ class Fact:
         f = f"{self.predicate}({','.join([constants.pop(0) if isVariable(p) else p for p in self.params])})"
         return Fact(f)
 
-class Implication:
-    
-    def __init__(self, expression):
-        self.expression = expression
-        l = expression.split('=>')
-        self.lhs = [Fact(f) for f in l[0].split('&')]
-        self.rhs = Fact(l[1])
-        
-    def evaluate(self, facts):
-        constants = {}
-        new_lhs = []
-        for fact in facts:
-            for val in self.lhs:
-                if val.predicate == fact.predicate:
-                    for i, v in enumerate(val.getVariables()):
-                        if v:
-                            constants[v] = fact.getConstants()[i]
-                    new_lhs.append(fact)
-        predicate, attributes = getPredicates(self.rhs.expression)[0], str(getAttributes(self.rhs.expression)[0])
-        for key in constants:
-            if constants[key]:
-                attributes = attributes.replace(key, constants[key])
-        expr = f'{predicate}{attributes}'
-        return Fact(expr) if len(new_lhs) and all([f.getResult() for f in new_lhs]) else None
-
 class KB:
-    
     def __init__(self):
         self.facts = set()
         self.implications = set()
@@ -95,6 +79,19 @@ class KB:
         print("All facts: ")
         for i, f in enumerate(set([f.expression for f in self.facts])):
             print(f'\t{i+1}. {f}')
+
+def isVariable(x):
+    return len(x) == 1 and x.islower() and x.isalpha()
+
+def getAttributes(string):
+    expr = '\([^)]+\)' 
+    matches = re.findall(expr, string)
+    return matches
+    
+
+def getPredicates(string):
+    expr = '([a-z~]+)\([^&|]+\)'
+    return re.findall(expr, string)
 
 def main():
     kb = KB()
